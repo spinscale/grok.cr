@@ -1,0 +1,9 @@
+name: grok
+version: 0.1.0
+
+authors:
+  - Alexander Reelsen <alexander@reelsen.net>
+
+crystal: 0.32.0
+
+license: MIT
