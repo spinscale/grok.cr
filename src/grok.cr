@@ -21,6 +21,7 @@ class Grok
     # this is rather brute force but gets the job done for now...
     # this should be solved in a better way in the future
     while i < 1024
+      resolved_patterns_count = resolved_pattern_definitions.size
       unresolved_pattern_definitions.each do |name, pattern|
         begin
           converted_string = Grok.convert_to_regex_string pattern, resolved_pattern_definitions
@@ -33,8 +34,9 @@ class Grok
 
       unresolved_pattern_definitions.reject! resolved_pattern_definitions.keys
 
-      # no more patterns to resolve, no need to keep looping
-      if unresolved_pattern_definitions.empty?
+      # exit early if there is no change compared to the last run
+      # or no more patterns to resolve
+      if unresolved_pattern_definitions.empty? || resolved_patterns_count == resolved_pattern_definitions.size
         break
       end
 
