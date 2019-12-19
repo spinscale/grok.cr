@@ -32,17 +32,17 @@ describe Grok do
     end
   end
 
-  it "fails when grok pattern misses identifier" do
-    expect_raises(Exception, "missing identifier after colon at position 0") do
-      grok = Grok.new [ "%{GREEDYDATA} whatever" ]
-    end
+  it "supports grok patterns without identifiers" do
+    grok = Grok.new [ "%{GREEDYDATA} whatever" ]
+    result = grok.parse "foo bar whatever"
+    result.empty?.should be_true
   end
 
-  # it "supports custom patterns" do
-  #   grok = Grok.new [ "color %{RGB:rgb}" ], { "RGB" => "RED|GREEN|BLUE" }
-  #   result = grok.parse "color RED"
-  #   result["rgb"].should eq "RED"
-  # end
+  it "supports custom patterns" do
+    grok = Grok.new [ "color %{RGB:rgb}" ], { "RGB" => "RED|GREEN|BLUE" }
+    result = grok.parse "color RED"
+    result["rgb"].should eq "RED"
+  end
 
   it "global patterns are not overwritten" do
     grok = Grok.new [ "%{INT:data}" ], { "INT" => "TEXT" }
@@ -50,17 +50,30 @@ describe Grok do
     result["data"].should eq "23"
   end
 
-  # TODO patterns can be nested
+  it "test dots do not get swallowed" do
+    regex = Grok.convert_to_regex_string "%{A}.%{A}", { "A" => "1" }
+    regex.should eq "1.1"
+  end
+
   it "patterns can be nested" do
     grok = Grok.new [ "%{VERSION:version}" ], { "VERSION" => "%{INT}.%{INT}.%{INT}" }
     result = grok.parse "1.5.6"
     result["version"].should eq "1.5.6"
   end
 
-  # TODO patterns can be nested arbitrarily deep
-  # TODO recursive detection
-  # it "patterns can not go recursive" do
-  #   grok = Grok.new [ "%{INT:data}" ], { "FOO" => "%{BAR}" }
-  # end
+  it "patterns can be nested really deep" do
+    patterns = { "I_0" => "%{INT}" }
+    (1..100).to_a.each { |idx| patterns["I_#{idx}"] = "%{I_#{idx-1}}" }
+    grok = Grok.new [ "%{I_100:name}" ], patterns
+    result = grok.parse "1024"
+    result["name"].should eq "1024"
+  end
+
+  it "patterns can not go recursive" do
+    expect_raises(Exception, /could not resolve the following patterns {"FOO" => "%{BAR}", "BAR" => "%{FOO}"}/) do
+      Grok.new [ "%{FOO:data}" ], { "FOO" => "%{BAR}", "BAR" : "%{FOO}" }
+    end
+  end
+
   # TODO read standard patterns from file
 end

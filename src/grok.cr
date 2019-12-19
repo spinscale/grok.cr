@@ -9,11 +9,47 @@ class Grok
 
   def initialize(text_patterns : Array(String),
                  pattern_definitions = {} of String => String)
+
     all_pattern_definitions = pattern_definitions.merge @@global_pattern_definitions
+    resolved_pattern_definitions = all_pattern_definitions.select do |name, pattern|
+      pattern.index("%{").nil?
+    end
+    unresolved_pattern_definitions = all_pattern_definitions.select do |name, pattern|
+      !pattern.index("%{").nil?
+    end
+    i = 0
+    # this is rather brute force but gets the job done for now...
+    # this should be solved in a better way in the future
+    while i < 1024
+      unresolved_pattern_definitions.each do |name, pattern|
+        begin
+          converted_string = Grok.convert_to_regex_string pattern, resolved_pattern_definitions
+          if converted_string.index("%{").nil?
+            resolved_pattern_definitions[name] = converted_string
+          end
+        rescue
+        end
+      end
+
+      unresolved_pattern_definitions.reject! resolved_pattern_definitions.keys
+
+      # no more patterns to resolve, no need to keep looping
+      if unresolved_pattern_definitions.empty?
+        break
+      end
+
+      i = i + 1
+    end
+
+    if !unresolved_pattern_definitions.empty?
+      raise "could not resolve the following patterns #{unresolved_pattern_definitions}, please make sure there are no recursing or deep pattern definitions"
+    end
+
     @patterns = text_patterns.map do |p|
-      converted_string = Grok.convert_to_regex_string p, all_pattern_definitions
+      converted_string = Grok.convert_to_regex_string p, resolved_pattern_definitions
       Regex.new converted_string
     end
+
   end
 
   # converts a grok string to a regex based string
@@ -44,15 +80,15 @@ class Grok
       # sth like GREEDYDATA:foo without the {}
       data = input[beginning, end_index-beginning]
       if data.index(":").nil?
-        raise "missing identifier after colon at position #{idx}"
+        output << pattern_definitions[data]
+      else
+        regex_name, named_capture = data.split(":", 2)
+        output << "(?<"
+        output << named_capture
+        output << ">"
+        output << pattern_definitions[regex_name]
+        output << ")"
       end
-      regex_name, named_capture = data.split(":", 2)
-
-      output << "(?<"
-      output << named_capture
-      output << ">"
-      output << pattern_definitions[regex_name]
-      output << ")"
 
       # on to the next regex
       idx = input.index("%{", end_index)
@@ -61,14 +97,13 @@ class Grok
       # if there is any
       if idx.nil? && end_index+1 < len
         output << input[end_index+1]
+      elsif !idx.nil? && end_index < idx
+        output << input[end_index+1, idx-end_index-1]
       end
     end
 
     output.to_s
   end
-
-  # TODO repurpose into the text extraction to regex into own method
-  # easier to test
 
   def parse(content : String)
     @patterns.each do |pattern|
