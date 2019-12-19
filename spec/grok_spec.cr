@@ -38,7 +38,29 @@ describe Grok do
     end
   end
 
-  # TODO read standard patterns
-  # TODO add custom patterns
+  # it "supports custom patterns" do
+  #   grok = Grok.new [ "color %{RGB:rgb}" ], { "RGB" => "RED|GREEN|BLUE" }
+  #   result = grok.parse "color RED"
+  #   result["rgb"].should eq "RED"
+  # end
+
+  it "global patterns are not overwritten" do
+    grok = Grok.new [ "%{INT:data}" ], { "INT" => "TEXT" }
+    result = grok.parse "23"
+    result["data"].should eq "23"
+  end
+
+  # TODO patterns can be nested
+  it "patterns can be nested" do
+    grok = Grok.new [ "%{VERSION:version}" ], { "VERSION" => "%{INT}.%{INT}.%{INT}" }
+    result = grok.parse "1.5.6"
+    result["version"].should eq "1.5.6"
+  end
+
+  # TODO patterns can be nested arbitrarily deep
   # TODO recursive detection
+  # it "patterns can not go recursive" do
+  #   grok = Grok.new [ "%{INT:data}" ], { "FOO" => "%{BAR}" }
+  # end
+  # TODO read standard patterns from file
 end
