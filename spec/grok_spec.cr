@@ -76,4 +76,11 @@ describe Grok do
   end
 
   # TODO read standard patterns from file
+  it "all the standard patterns are read" do
+    grok = Grok.new [ "%{REDISTIMESTAMP:ts}" ]
+    result = grok.parse "11 Dec 09:10:44"
+    result["ts"].should eq "11 Dec 09:10:44"
+  end
+
+  # TODO speed up, resolve all standard patterns upfront
 end

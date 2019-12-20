@@ -1,15 +1,15 @@
+require "./patterns"
+
 class Grok
 
-  @@global_pattern_definitions = {
-    "GREEDYDATA" => ".*",
-    "INT" => "(?:[+-]?(?:[0-9]+))"
-  }
+  @@global_pattern_definitions : Hash(String, String)
+  @@global_pattern_definitions = GrokPatterns.patterns
+
 
   @patterns : Array(Regex)
 
   def initialize(text_patterns : Array(String),
                  pattern_definitions = {} of String => String)
-
     all_pattern_definitions = pattern_definitions.merge @@global_pattern_definitions
     resolved_pattern_definitions = all_pattern_definitions.select do |name, pattern|
       pattern.index("%{").nil?
