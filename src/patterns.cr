@@ -226,7 +226,6 @@ class GrokPatterns
     "JAVAMETHOD" => %q((?:(<(?:cl)?init>)|[a-zA-Z$_][a-zA-Z$_0-9]*)),
     "JAVASTACKTRACEPART" => %q(%{SPACE}at %{JAVACLASS:class}\.%{JAVAMETHOD:method}\(%{JAVAFILE:file}(?::%{NUMBER:line})?\)),
     "JAVATHREAD" => %q((?:[A-Z]{2}-Processor[\d]+)),
-    "JAVASTACKTRACEPART" => %q(at %{JAVACLASS:class}\.%{WORD:method}\(%{JAVAFILE:file}:%{NUMBER:line}\)),
     "JAVALOGMESSAGE" => %q((.*)),
     "CATALINA_DATESTAMP" => %q(%{MONTH} %{MONTHDAY}, 20%{YEAR} %{HOUR}:?%{MINUTE}(?::?%{SECOND}) (?:AM|PM)),
     "TOMCAT_DATESTAMP" => %q(20%{YEAR}-%{MONTHNUM}-%{MONTHDAY} %{HOUR}:?%{MINUTE}(?::?%{SECOND}) %{ISO8601_TIMEZONE}),

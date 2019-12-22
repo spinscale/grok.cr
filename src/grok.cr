@@ -11,10 +11,10 @@ class Grok
   def initialize(text_patterns : Array(String),
                  pattern_definitions = {} of String => String)
     all_pattern_definitions = pattern_definitions.merge @@global_pattern_definitions
-    resolved_pattern_definitions = all_pattern_definitions.select do |name, pattern|
+    resolved_pattern_definitions = all_pattern_definitions.select do |_, pattern|
       pattern.index("%{").nil?
     end
-    unresolved_pattern_definitions = all_pattern_definitions.select do |name, pattern|
+    unresolved_pattern_definitions = all_pattern_definitions.select do |_, pattern|
       !pattern.index("%{").nil?
     end
     i = 0
@@ -115,6 +115,6 @@ class Grok
       end
     end
     # no matches empty hash map
-    return {} of String => String
+    {} of String => String
   end
 end

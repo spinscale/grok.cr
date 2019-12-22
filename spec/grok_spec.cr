@@ -22,13 +22,13 @@ describe Grok do
 
   it "fails if no grok pattern is found" do
     expect_raises(Exception, "no grok pattern found") do
-      grok = Grok.new [ "no pattern here!" ]
+      Grok.new [ "no pattern here!" ]
     end
   end
 
   it "fails when grok pattern is not closed" do
     expect_raises(Exception, "unclosed grok pattern starting at position 0") do
-      grok = Grok.new [ "%{GREEDYDATA:foo unclosed" ]
+      Grok.new [ "%{GREEDYDATA:foo unclosed" ]
     end
   end
 
