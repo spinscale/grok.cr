@@ -51,7 +51,7 @@ describe Grok do
   end
 
   it "test dots do not get swallowed" do
-    regex = Grok.convert_to_regex_string "%{A}.%{A}", { "A" => "1" }
+    regex = Grok.convert_recursively "%{A}.%{A}", { "A" => "1" }
     regex.should eq "1.1"
   end
 
@@ -70,12 +70,11 @@ describe Grok do
   end
 
   it "patterns can not go recursive" do
-    expect_raises(Exception, /could not resolve the following patterns {"FOO" => "%{BAR}", "BAR" => "%{FOO}"}/) do
+    expect_raises(Exception, /pattern %{BAR} is defined recursive/) do
       Grok.new [ "%{FOO:data}" ], { "FOO" => "%{BAR}", "BAR" : "%{FOO}" }
     end
   end
 
-  # TODO read standard patterns from file
   it "all the standard patterns are read" do
     grok = Grok.new [ "%{REDISTIMESTAMP:ts}" ]
     result = grok.parse "11 Dec 09:10:44"
@@ -83,4 +82,5 @@ describe Grok do
   end
 
   # TODO speed up, resolve all standard patterns upfront
+  # TODO add types and convert properly into the map
 end

@@ -5,6 +5,15 @@ Regexes for mere mortals!
 This is heavily influenced by the grok processor in Elasticsearch and
 the grok filter in logstash.
 
+Grok has been written by Jordan Sissel (the creator logstash). Grok serves as
+a library for regular expressions so you do not have to remember all the
+awkward regex syntaxes and just need to remember names that get mapped to
+patterns.
+
+This is a port of the functionality to crystal that uses the same grok
+patterns in its standard library than logstash or the Elasticsearch grok
+processor.
+
 ## Installation
 
 1. Add the dependency to your `shard.yml`:
@@ -25,9 +34,9 @@ require "grok"
 
 TODO: Write usage instructions here
 
-## Development
+## Bugs and issues
 
-TODO: Write development instructions here
+If you find a bug, please ensure to provide a reproducible example.
 
 ## Contributing
 
@@ -39,4 +48,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [your-name-here](https://github.com/your-github-user) - creator and maintainer
+- [Alexander Reelsen](https://github.com/spinscale) - creator and maintainer
