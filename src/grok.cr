@@ -67,7 +67,7 @@ class Grok
       # no more matches, make sure we append the remaining text
       # if there is any
       if idx.nil? && end_index+1 < len
-        output << pattern[end_index+1]
+        output << pattern[end_index+1, len]
       elsif !idx.nil? && end_index < idx
         output << pattern[end_index+1, idx-end_index-1]
       end

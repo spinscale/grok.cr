@@ -75,10 +75,31 @@ describe Grok do
     end
   end
 
-  it "all the standard patterns are read" do
+  it "grok standard patterns - redis timestamps" do
     grok = Grok.new [ "%{REDISTIMESTAMP:ts}" ]
     result = grok.parse "11 Dec 09:10:44"
     result["ts"].should eq "11 Dec 09:10:44"
+  end
+
+  it "grok standard patterns - quoted string" do
+    grok = Grok.new [ "%{QS:my_quoted_string}" ]
+    # grok = Grok.new [ "%{FOO:my_quoted_string}" ], 
+    # { "FOO" => %q((?>(?<!\\)(?>"(?>\.|[^\"]+)+"|""|(?>'(?>\.|[^\']+)+')|''))) }
+
+    result = grok.parse %q("quoted string")
+    result["my_quoted_string"].should eq "quoted string"
+  end
+
+  it "works with optional alternatives at the end" do
+    grok = Grok.new [ "(?:%{GREEDYDATA:bytes}|-)" ]
+    result = grok.parse "123"
+    result["bytes"].should eq "123"
+  end
+
+  it "grok standard patterns - combined apache log" do
+    grok = Grok.new [ "%{COMBINEDAPACHELOG}" ]
+    result = grok.parse %q(1.1.1.1 - auth_user [12/Dec/2019:12:45:45 -0700] "GET / HTTP/1.1" 200 633 "http://referer.org" "Secret Browser")
+    result.keys.should eq ["clientip", "ident", "auth", "timestamp", "verb", "request", "httpversion", "rawrequest", "response", "bytes", "referrer", "agent"]
   end
 
   # TODO speed up, resolve all standard patterns upfront
