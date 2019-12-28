@@ -10,12 +10,13 @@ class Grok
   def initialize(patterns_as_string : Array(String),
     custom_pattern_definitions = {} of String => String)
     pattern_definitions = custom_pattern_definitions.merge @@global_pattern_definitions
-    @patterns = patterns_as_string.map do |pattern|
-      Regex.new Grok.convert_recursively(pattern, pattern_definitions)
+    @data_types = x = Array(Hash(String, String)).new(patterns_as_string.size) { Hash(String, String).new() }
+    @patterns = patterns_as_string.map_with_index do |pattern, index|
+      Regex.new convert_recursively(index, pattern, pattern_definitions)
     end    
   end
 
-  def self.convert_recursively(pattern : String, pattern_definitions : Hash(String, String), found_patterns = Array(String).new())
+  def convert_recursively(index : Int32, pattern : String, pattern_definitions : Hash(String, String), found_patterns = Array(String).new())
     len = pattern.size
     start = pattern.index("%{")
     if start.nil?
@@ -48,16 +49,18 @@ class Grok
       # only a pattern we need to resolve
       if data.index(":").nil?
         pattern_name = data
-        if pattern_definitions.has_key?(pattern_name)
-          output << Grok.convert_recursively pattern_definitions[data], pattern_definitions, found_patterns + [data]
-        else
-        end
+        output << convert_recursively index, pattern_definitions[data], pattern_definitions, found_patterns + [data]
       else
         regex_name, named_capture = data.split(":", 2)
+        if !named_capture.index(":").nil?
+          named_capture, data_type = named_capture.split(":", 2)
+          types = @data_types[index]
+          types[named_capture] = data_type
+        end
         output << "(?<"
         output << named_capture
         output << ">"
-        output << Grok.convert_recursively pattern_definitions[regex_name], pattern_definitions, found_patterns + [named_capture]
+        output << convert_recursively index, pattern_definitions[regex_name], pattern_definitions, found_patterns + [named_capture]
         output << ")"
       end
 
@@ -77,10 +80,37 @@ class Grok
   end
 
   def parse(content : String)
-    @patterns.each do |pattern|
+    @patterns.each_with_index do |pattern, index|
       match = content.match pattern
       if !match.nil?
-        return match.named_captures
+        if @data_types[index].empty?
+          return match.named_captures
+        else
+          converted_captures = Hash(String, String | Int32 | Int64 | Float32 | Float64 | Bool).new
+          converted_captures
+          @data_types[index].each do |key, value|
+            if match.named_captures.keys.includes?(key)
+              value_to_convert = match.named_captures[key]
+              if value_to_convert.is_a?(String)
+                converted_captures[key] = case value
+                when "int"
+                  value_to_convert.to_i32
+                when "long"
+                  value_to_convert.to_i64
+                when "float"
+                  value_to_convert.to_f32
+                when "double"
+                  value_to_convert.to_f64
+                when "boolean"
+                  value_to_convert == "true"
+                else
+                  value_to_convert
+                end
+              end
+            end
+          end
+          return match.named_captures.merge converted_captures
+        end
       end
     end
     # no matches empty hash map

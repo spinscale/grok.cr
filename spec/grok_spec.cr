@@ -51,8 +51,10 @@ describe Grok do
   end
 
   it "test dots do not get swallowed" do
-    regex = Grok.convert_recursively "%{A}.%{A}", { "A" => "1" }
-    regex.should eq "1.1"
+    grok = Grok.new [ "%{A:first}.%{A:second}" ], { "A" => "1" }
+    result = grok.parse "1.1"
+    result["first"].should eq "1"
+    result["second"].should eq "1"
   end
 
   it "patterns can be nested" do
@@ -99,6 +101,18 @@ describe Grok do
     result.keys.should eq ["clientip", "ident", "auth", "timestamp", "verb", "request", "httpversion", "rawrequest", "response", "bytes", "referrer", "agent"]
   end
 
-  # TODO speed up, resolve all standard patterns upfront
-  # TODO add types and convert properly into the map
+  it "works with type conversion" do
+    grok = Grok.new [ "%{INT:my_int:int} %{INT:my_long:long} %{NUMBER:my_double:double} %{NUMBER:my_float:float} %{WORD:my_bool:boolean} %{WORD:my_string:string} %{WORD:second_string}" ]
+    result = grok.parse "1 1 1.1 1.1 true whatever1 whatever2"
+
+    result["my_int"].should eq 1_i32
+    result["my_long"].should eq 1_i64
+    result["my_double"].should eq 1.1_f64
+    result["my_float"].should eq 1.1_f32
+    result["my_bool"].should eq true
+    result["my_string"].should eq "whatever1"
+    result["second_string"].should eq "whatever2"
+  end
+
+  # TODO test with several grok expression in grok ctor array
 end
