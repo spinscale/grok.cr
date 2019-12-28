@@ -1,22 +1,21 @@
 require "./patterns"
 
 class Grok
-
   @@global_pattern_definitions : Hash(String, String)
   @@global_pattern_definitions = GrokPatterns.patterns
 
   @patterns : Array(Regex)
 
   def initialize(patterns_as_string : Array(String),
-    custom_pattern_definitions = {} of String => String)
+                 custom_pattern_definitions = {} of String => String)
     pattern_definitions = custom_pattern_definitions.merge @@global_pattern_definitions
-    @data_types = x = Array(Hash(String, String)).new(patterns_as_string.size) { Hash(String, String).new() }
+    @data_types = x = Array(Hash(String, String)).new(patterns_as_string.size) { Hash(String, String).new }
     @patterns = patterns_as_string.map_with_index do |pattern, index|
       Regex.new convert_recursively(index, pattern, pattern_definitions)
-    end    
+    end
   end
 
-  def convert_recursively(index : Int32, pattern : String, pattern_definitions : Hash(String, String), found_patterns = Array(String).new())
+  def convert_recursively(index : Int32, pattern : String, pattern_definitions : Hash(String, String), found_patterns = Array(String).new)
     len = pattern.size
     start = pattern.index("%{")
     if start.nil?
@@ -40,9 +39,9 @@ class Grok
 
       # remove {} from string
       beginning = idx + 2
-      data = pattern[beginning, end_index-beginning]
+      data = pattern[beginning, end_index - beginning]
       # prevent recursion
-      if found_patterns.includes?(data) 
+      if found_patterns.includes?(data)
         raise "pattern #{pattern} is defined recursive"
       end
 
@@ -69,10 +68,10 @@ class Grok
 
       # no more matches, make sure we append the remaining text
       # if there is any
-      if idx.nil? && end_index+1 < len
-        output << pattern[end_index+1, len]
+      if idx.nil? && end_index + 1 < len
+        output << pattern[end_index + 1, len]
       elsif !idx.nil? && end_index < idx
-        output << pattern[end_index+1, idx-end_index-1]
+        output << pattern[end_index + 1, idx - end_index - 1]
       end
     end
 
@@ -93,19 +92,19 @@ class Grok
               value_to_convert = match.named_captures[key]
               if value_to_convert.is_a?(String)
                 converted_captures[key] = case value
-                when "int"
-                  value_to_convert.to_i32
-                when "long"
-                  value_to_convert.to_i64
-                when "float"
-                  value_to_convert.to_f32
-                when "double"
-                  value_to_convert.to_f64
-                when "boolean"
-                  value_to_convert == "true"
-                else
-                  value_to_convert
-                end
+                                          when "int"
+                                            value_to_convert.to_i32
+                                          when "long"
+                                            value_to_convert.to_i64
+                                          when "float"
+                                            value_to_convert.to_f32
+                                          when "double"
+                                            value_to_convert.to_f64
+                                          when "boolean"
+                                            value_to_convert == "true"
+                                          else
+                                            value_to_convert
+                                          end
               end
             end
           end
