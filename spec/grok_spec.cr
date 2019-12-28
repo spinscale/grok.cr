@@ -114,5 +114,9 @@ describe Grok do
     result["second_string"].should eq "whatever2"
   end
 
-  # TODO test with several grok expression in grok ctor array
+  it "supports multiple grok expressions via array in ctor" do
+    grok = Grok.new [ "%{NUMBER:foo}", "%{WORD:bar}" ]
+    result = grok.parse "test"
+    result["bar"].should eq "test"
+  end
 end
