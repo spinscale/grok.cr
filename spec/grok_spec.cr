@@ -83,11 +83,8 @@ describe Grok do
 
   it "grok standard patterns - quoted string" do
     grok = Grok.new [ "%{QS:my_quoted_string}" ]
-    # grok = Grok.new [ "%{FOO:my_quoted_string}" ], 
-    # { "FOO" => %q((?>(?<!\\)(?>"(?>\.|[^\"]+)+"|""|(?>'(?>\.|[^\']+)+')|''))) }
-
     result = grok.parse %q("quoted string")
-    result["my_quoted_string"].should eq "quoted string"
+    result["my_quoted_string"].should eq "\"quoted string\""
   end
 
   it "works with optional alternatives at the end" do
