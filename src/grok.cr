@@ -9,7 +9,7 @@ class Grok
   def initialize(patterns_as_string : Array(String),
                  custom_pattern_definitions = {} of String => String)
     pattern_definitions = custom_pattern_definitions.merge @@global_pattern_definitions
-    @data_types = x = Array(Hash(String, String)).new(patterns_as_string.size) { Hash(String, String).new }
+    @data_types = Array(Hash(String, String)).new(patterns_as_string.size) { Hash(String, String).new }
     @patterns = patterns_as_string.map_with_index do |pattern, index|
       Regex.new convert_recursively(index, pattern, pattern_definitions)
     end
@@ -47,7 +47,6 @@ class Grok
 
       # only a pattern we need to resolve
       if data.index(":").nil?
-        pattern_name = data
         output << convert_recursively index, pattern_definitions[data], pattern_definitions, found_patterns + [data]
       else
         regex_name, named_capture = data.split(":", 2)
