@@ -100,6 +100,14 @@ describe Grok do
     result.keys.should eq ["clientip", "ident", "auth", "timestamp", "verb", "request", "httpversion", "rawrequest", "response", "bytes", "referrer", "agent"]
   end
 
+  it "grok standard patterns - syslog sample" do
+    grok = Grok.new [ "%{SYSLOGBASE2} %{WORD:action} on %{WORD:interface} to %{IP:ip} port %{INT:port} interval %{INT:interval} %{GREEDYDATA:message}" ]
+    result = grok.parse "Dec 29 22:41:02 mako dhclient[11675]: DHCPDISCOVER on enp59s0f1 to 255.255.255.255 port 67 interval 3 (xid=0x4d444363)"
+
+    expected_result = { "timestamp" => "Dec 29 22:41:02", "timestamp8601" => nil, "facility" => nil, "priority" => nil, "logsource" => "mako", "program" => "dhclient", "pid" => "11675", "action" => "DHCPDISCOVER", "interface" => "enp59s0f1", "ip" => "255.255.255.255", "port" => "67", "interval" => "3", "message" => "(xid=0x4d444363)" }
+    result.should eq expected_result
+  end
+
   it "works with type conversion" do
     grok = Grok.new ["%{INT:my_int:int} %{INT:my_long:long} %{NUMBER:my_double:double} %{NUMBER:my_float:float} %{WORD:my_bool:boolean} %{WORD:my_string:string} %{WORD:second_string}"]
     result = grok.parse "1 1 1.1 1.1 true whatever1 whatever2"
