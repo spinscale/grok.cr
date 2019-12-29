@@ -15,8 +15,8 @@ class Grok
     end
   end
 
+  # ameba:disable Metrics/CyclomaticComplexity
   def convert_recursively(index : Int32, pattern : String, pattern_definitions : Hash(String, String), found_patterns = Array(String).new)
-    len = pattern.size
     start = pattern.index("%{")
     if start.nil?
       if found_patterns.empty?
@@ -27,6 +27,7 @@ class Grok
     end
 
     idx = start
+    len = pattern.size
     output = String::Builder.new
     output << pattern[0, start]
     while !idx.nil? && idx < len
@@ -37,13 +38,11 @@ class Grok
         raise "unclosed grok pattern starting at position #{idx}"
       end
 
-      # remove {} from string
+      # remove %{} from string
       beginning = idx + 2
       data = pattern[beginning, end_index - beginning]
       # prevent recursion
-      if found_patterns.includes?(data)
-        raise "pattern #{pattern} is defined recursive"
-      end
+      raise "pattern #{pattern} is defined recursive" if found_patterns.includes?(data)
 
       # only a pattern we need to resolve
       if data.index(":").nil?
@@ -55,9 +54,7 @@ class Grok
           types = @data_types[index]
           types[named_capture] = data_type
         end
-        output << "(?<"
-        output << named_capture
-        output << ">"
+        output << "(?<#{named_capture}>"
         output << convert_recursively index, pattern_definitions[regex_name], pattern_definitions, found_patterns + [named_capture]
         output << ")"
       end
