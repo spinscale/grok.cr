@@ -87,6 +87,11 @@ map["my_field"] == 123_i32
 Supported types are `integer`, `long`, `double`, `float` and `boolean` to
 support the existing types of other implementations.
 
+If you want to know what other patterns are available, check out the
+[patterns.cr](src/patterns.cr) file or the [grok-patterns
+directory](src/grok-patterns/), which lists all the patterns and its
+accompanying regexes.
+
 ## Bugs and issues
 
 If you find a bug, please ensure to provide a reproducible example.

@@ -1,4 +1,7 @@
 #!/bin/bash
+# This rewrites the grok patterns file
+# in case of changes to the existing patterns
+# this file can be regenerated
 
 (
 echo "class GrokPatterns"
